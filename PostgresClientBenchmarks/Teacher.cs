@@ -1,15 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
+using PostgresClientBenchmarks;
 
 public class SchoolContext : DbContext
 {
-    private string connectionString = $"Server=localhost;Port=5432;User Id=postgres;Password=p0stgres;Database=testdb;";
-
-	public DbSet<Teacher> Teachers { get; set; }
+    public DbSet<Teacher> Teachers { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseNpgsql(connectionString); 
+        optionsBuilder.UseNpgsql(BenchmarkSettings.DatabaseConnectionString);
         base.OnConfiguring(optionsBuilder);
     }
 
@@ -65,18 +64,18 @@ public class Teacher : DbContext
     }
 
     //[System.ComponentModel.DataAnnotations.Key]
-    [Column("id")] 
+    [Column("id")]
     public int Id { get; internal set; }
 
-    //[Column("first_name")] 
+    //[Column("first_name")]
     public string FirstName { get; internal set; }
 
-    //[Column("last_name")] 
+    //[Column("last_name")]
     public string LastName { get; internal set; }
 
-    //[Column("subject")] 
+    //[Column("subject")]
     public string Subject { get; internal set; }
 
-    //[Column("salary")] 
+    //[Column("salary")]
     public int Salary { get; internal set; }
 }

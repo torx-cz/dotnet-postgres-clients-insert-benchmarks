@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 public class PostgresEF
 {
-	private SchoolContext _db;
+	private readonly SchoolContext _db;
 
 	public PostgresEF()
 	{

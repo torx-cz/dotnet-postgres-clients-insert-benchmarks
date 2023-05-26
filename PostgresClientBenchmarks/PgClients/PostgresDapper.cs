@@ -1,14 +1,14 @@
 using Dapper;
 using Npgsql;
+using PostgresClientBenchmarks;
 
 public class PostgresDapper : IDisposable
 {
-	private NpgsqlConnection _connection;
+	private readonly NpgsqlConnection _connection;
 
 	public PostgresDapper()
 	{
-		var cs = $"Server=localhost;Port=5432;User Id=postgres;Password=p0stgres;Database=testdb;";
-		_connection = new NpgsqlConnection(cs);
+		_connection = new NpgsqlConnection(BenchmarkSettings.DatabaseConnectionString);
 		_connection.Open();
 	}
 
