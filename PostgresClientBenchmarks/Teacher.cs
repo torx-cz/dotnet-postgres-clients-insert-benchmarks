@@ -1,6 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations.Schema;
-using PostgresClientBenchmarks;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
+
+namespace PostgresClientBenchmarks;
 
 public class SchoolContext : DbContext
 {
@@ -18,8 +19,8 @@ public class SchoolContext : DbContext
         modelBuilder.Entity<Teacher>(entity =>
         {
             entity.Property(e => e.Id)
-                                .HasColumnName("id")
-                                .HasDefaultValueSql("nextval('account.item_id_seq'::regclass)");
+                .HasColumnName("id")
+                .HasDefaultValueSql("nextval('account.item_id_seq'::regclass)");
             entity.Property(e => e.FirstName).IsRequired().HasColumnName("first_name");
             entity.Property(e => e.LastName).IsRequired().HasColumnName("last_name");
             entity.Property(e => e.Subject).IsRequired().HasColumnName("subject");
@@ -30,20 +31,11 @@ public class SchoolContext : DbContext
     }
 }
 
-
-
 //[Table(Teacher.TableName)]
 public class Teacher : DbContext
 {
-	static Random _rnd = new Random();
-
-	public const string TableName = "teachers";
-
-    public static Teacher GetRandomTeacher()
-    {
-        var n = _rnd.Next(1000);
-        return new Teacher("N" + n, "L" + n, "S" + n, n);
-    }
+    public const string TableName = "teachers";
+    private static Random _rnd = new();
 
     public Teacher(int id, string first_name, string last_name, string subject, int salary)
     {
@@ -64,8 +56,7 @@ public class Teacher : DbContext
     }
 
     //[System.ComponentModel.DataAnnotations.Key]
-    [Column("id")]
-    public int Id { get; internal set; }
+    [Column("id")] public int Id { get; internal set; }
 
     //[Column("first_name")]
     public string FirstName { get; internal set; }
@@ -78,4 +69,10 @@ public class Teacher : DbContext
 
     //[Column("salary")]
     public int Salary { get; internal set; }
+
+    public static Teacher GetRandomTeacher()
+    {
+        var n = _rnd.Next(1000);
+        return new Teacher("N" + n, "L" + n, "S" + n, n);
+    }
 }

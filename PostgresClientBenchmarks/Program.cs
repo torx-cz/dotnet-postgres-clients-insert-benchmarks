@@ -1,8 +1,9 @@
 ﻿using BenchmarkDotNet.Running;
+using PostgresClientBenchmarks;
 
 Console.WriteLine("Starting");
 
-BenchmarkRunner.Run<SingleInsert>();
+BenchmarkRunner.Run<BulkInsert>();
 
 //var pg = new SingleUpdate();
 //await pg.Setup();

@@ -1,246 +1,253 @@
 using Npgsql;
+using NpgsqlTypes;
 using PostgresClientBenchmarks;
 
 public class PostgresNpgsql
 {
-	private readonly NpgsqlConnection _connection;
-	private readonly NpgsqlCommand _cmd;
+    private readonly NpgsqlCommand _cmd;
+    private readonly NpgsqlConnection _connection;
 
-	public PostgresNpgsql()
-	{
-		_connection = new NpgsqlConnection(BenchmarkSettings.DatabaseConnectionString);
-		_connection.Open();
-		_cmd = new NpgsqlCommand();
-		_cmd.Connection = _connection;
-	}
+    public PostgresNpgsql()
+    {
+        _connection = new NpgsqlConnection(BenchmarkSettings.DatabaseConnectionString);
+        _connection.Open();
+        _cmd = new NpgsqlCommand();
+        _cmd.Connection = _connection;
+    }
 
-	public async Task CreateTableAsync()
-	{
-		_cmd.CommandText = $"DROP TABLE IF EXISTS teachers";
-		await _cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
-		_cmd.CommandText = "CREATE TABLE teachers (id SERIAL PRIMARY KEY," +
-			"first_name VARCHAR(255)," +
-			"last_name VARCHAR(255)," +
-			"subject VARCHAR(255)," +
-			"salary INT)";
-		await _cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
-	}
+    public async Task CreateTableAsync()
+    {
+        _cmd.CommandText = "DROP TABLE IF EXISTS teachers";
+        await _cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+        _cmd.CommandText = "CREATE TABLE teachers (id SERIAL PRIMARY KEY," +
+                           "first_name VARCHAR(255)," +
+                           "last_name VARCHAR(255)," +
+                           "subject VARCHAR(255)," +
+                           "salary INT)";
+        await _cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+    }
 
-	public async Task CreateIndexOnSubject()
-	{
-		string tableName = "teachers";
-		_cmd.CommandText = $"CREATE INDEX idx_sessionSubject{tableName} ON {tableName}(subject)";
-		await _cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
-	}
+    public async Task CreateIndexOnSubject()
+    {
+        var tableName = "teachers";
+        _cmd.CommandText = $"CREATE INDEX idx_sessionSubject{tableName} ON {tableName}(subject)";
+        await _cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+    }
 
-	public void CreateTable()
-	{
-		_cmd.CommandText = $"DROP TABLE IF EXISTS teachers";
-		_cmd.ExecuteNonQuery();
-		_cmd.CommandText = "CREATE TABLE teachers (id SERIAL PRIMARY KEY," +
-			"first_name VARCHAR(255)," +
-			"last_name VARCHAR(255)," +
-			"subject VARCHAR(255)," +
-			"salary INT)";
-		_cmd.ExecuteNonQuery();
-	}
+    public void CreateTable()
+    {
+        _cmd.CommandText = "DROP TABLE IF EXISTS teachers";
+        _cmd.ExecuteNonQuery();
+        _cmd.CommandText = "CREATE TABLE teachers (id SERIAL PRIMARY KEY," +
+                           "first_name VARCHAR(255)," +
+                           "last_name VARCHAR(255)," +
+                           "subject VARCHAR(255)," +
+                           "salary INT)";
+        _cmd.ExecuteNonQuery();
+    }
 
-	public async Task Insert(Teacher teacher)
-	{
-		_cmd.CommandText = $"INSERT INTO teachers (first_name, last_name, subject, salary) VALUES (@firstName, @lastName, @subject, @salary)";
-		_cmd.Parameters.AddWithValue("firstName", teacher.FirstName);
-		_cmd.Parameters.AddWithValue("lastName", teacher.LastName);
-		_cmd.Parameters.AddWithValue("subject", teacher.Subject);
-		_cmd.Parameters.AddWithValue("salary", teacher.Salary);
-		await _cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
-	}
+    public async Task Insert(Teacher teacher)
+    {
+        _cmd.CommandText =
+            "INSERT INTO teachers (first_name, last_name, subject, salary) VALUES (@firstName, @lastName, @subject, @salary)";
+        _cmd.Parameters.AddWithValue("firstName", teacher.FirstName);
+        _cmd.Parameters.AddWithValue("lastName", teacher.LastName);
+        _cmd.Parameters.AddWithValue("subject", teacher.Subject);
+        _cmd.Parameters.AddWithValue("salary", teacher.Salary);
+        await _cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+    }
 
-	public void InsertSync(Teacher teacher)
-	{
-		// or
-		_cmd.CommandText = $"INSERT INTO teachers (first_name, last_name, subject, salary) VALUES (@firstName, @lastName, @subject, @salary)";
-		_cmd.Parameters.AddWithValue("firstName", teacher.FirstName);
-		_cmd.Parameters.AddWithValue("lastName", teacher.LastName);
-		_cmd.Parameters.AddWithValue("subject", teacher.Subject);
-		_cmd.Parameters.AddWithValue("salary", teacher.Salary);
-		_cmd.ExecuteNonQuery();
-		_cmd.Parameters.Clear();
-	}
+    public void InsertSync(Teacher teacher)
+    {
+        // or
+        _cmd.CommandText =
+            "INSERT INTO teachers (first_name, last_name, subject, salary) VALUES (@firstName, @lastName, @subject, @salary)";
+        _cmd.Parameters.AddWithValue("firstName", teacher.FirstName);
+        _cmd.Parameters.AddWithValue("lastName", teacher.LastName);
+        _cmd.Parameters.AddWithValue("subject", teacher.Subject);
+        _cmd.Parameters.AddWithValue("salary", teacher.Salary);
+        _cmd.ExecuteNonQuery();
+        _cmd.Parameters.Clear();
+    }
 
-	//public void InsertSyncWithId(Teacher teacher)
-	//{
-	//	// or
-	//	cmd.CommandText = $"INSERT INTO teachers (id, first_name, last_name, subject, salary) VALUES (@id, @firstName, @lastName, @subject, @salary)";
-	//	cmd.Parameters.AddWithValue("id", teacher.Id);
-	//	cmd.Parameters.AddWithValue("firstName", teacher.FirstName);
-	//	cmd.Parameters.AddWithValue("lastName", teacher.LastName);
-	//	cmd.Parameters.AddWithValue("subject", teacher.Subject);
-	//	cmd.Parameters.AddWithValue("salary", teacher.Salary);
-	//	cmd.ExecuteNonQuery();
-	//}
+    //public void InsertSyncWithId(Teacher teacher)
+    //{
+    //	// or
+    //	cmd.CommandText = $"INSERT INTO teachers (id, first_name, last_name, subject, salary) VALUES (@id, @firstName, @lastName, @subject, @salary)";
+    //	cmd.Parameters.AddWithValue("id", teacher.Id);
+    //	cmd.Parameters.AddWithValue("firstName", teacher.FirstName);
+    //	cmd.Parameters.AddWithValue("lastName", teacher.LastName);
+    //	cmd.Parameters.AddWithValue("subject", teacher.Subject);
+    //	cmd.Parameters.AddWithValue("salary", teacher.Salary);
+    //	cmd.ExecuteNonQuery();
+    //}
 
-	public void InsertSyncRawSQL(Teacher teacher)
-	{
-		_cmd.CommandText = $"INSERT INTO teachers (first_name, last_name, subject, salary) VALUES ('{teacher.FirstName}', '{teacher.LastName}', '{teacher.Subject}', {teacher.Salary})";
-		_cmd.ExecuteNonQuery();
-	}
+    public void InsertSyncRawSQL(Teacher teacher)
+    {
+        _cmd.CommandText =
+            $"INSERT INTO teachers (first_name, last_name, subject, salary) VALUES ('{teacher.FirstName}', '{teacher.LastName}', '{teacher.Subject}', {teacher.Salary})";
+        _cmd.ExecuteNonQuery();
+    }
 
-	public async Task DeleteById(int id)
-	{
-		_cmd.CommandText = $"DELETE FROM teachers WHERE id = {id}";
-		await _cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
-	}
+    public async Task DeleteById(int id)
+    {
+        _cmd.CommandText = $"DELETE FROM teachers WHERE id = {id}";
+        await _cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+    }
 
-	public async Task UpdateById(int id, Teacher newValues)
-	{
-		_cmd.CommandText = $"UPDATE teachers" +
-			$" SET first_name='{newValues.FirstName}'," +
-			$"last_name='{newValues.LastName}'," +
-			$"subject='{newValues.Subject}'," +
-			$"salary={newValues.Salary}" +
-			$" WHERE id = {id}";
-		await _cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
-	}
+    public async Task UpdateById(int id, Teacher newValues)
+    {
+        _cmd.CommandText = "UPDATE teachers" +
+                           $" SET first_name='{newValues.FirstName}'," +
+                           $"last_name='{newValues.LastName}'," +
+                           $"subject='{newValues.Subject}'," +
+                           $"salary={newValues.Salary}" +
+                           $" WHERE id = {id}";
+        await _cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+    }
 
-	public async Task UpdateLastNameById(int id, string newLastName)
-	{
-		_cmd.CommandText = $"UPDATE {Teacher.TableName} SET last_name='{newLastName}' WHERE id = {id}";
-		await _cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
-	}
+    public async Task UpdateLastNameById(int id, string newLastName)
+    {
+        _cmd.CommandText = $"UPDATE {Teacher.TableName} SET last_name='{newLastName}' WHERE id = {id}";
+        await _cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+    }
 
-	public async Task<IEnumerable<Teacher>> GetBySubject(string subject)
-	{
-		_cmd.CommandText = $"SELECT * FROM teachers WHERE subject='{subject}'";
-		NpgsqlDataReader reader = await _cmd.ExecuteReaderAsync().ConfigureAwait(false);
-		var result = new List<Teacher>();
-		while (await reader.ReadAsync().ConfigureAwait(false))
-		{
-			result.Add(new Teacher(
-				id: (int)reader[0],
-				first_name: reader[1] as string,
-				last_name: reader[2] as string,
-				subject: reader[3] as string,
-				salary: (int)reader[4]));
+    public async Task<IEnumerable<Teacher>> GetBySubject(string subject)
+    {
+        _cmd.CommandText = $"SELECT * FROM teachers WHERE subject='{subject}'";
+        var reader = await _cmd.ExecuteReaderAsync().ConfigureAwait(false);
+        var result = new List<Teacher>();
+        while (await reader.ReadAsync().ConfigureAwait(false))
+            result.Add(new Teacher(
+                (int) reader[0],
+                reader[1] as string,
+                reader[2] as string,
+                reader[3] as string,
+                (int) reader[4]));
+        await reader.CloseAsync().ConfigureAwait(false);
+        return result;
+    }
 
-		}
-		await reader.CloseAsync().ConfigureAwait(false);
-		return result;
-	}
+    public IEnumerable<Teacher> GetBySubjectSync(string subject)
+    {
+        _cmd.CommandText = $"SELECT * FROM teachers WHERE subject='{subject}'";
+        var reader = _cmd.ExecuteReader();
+        var result = new List<Teacher>();
+        while (reader.Read())
+            result.Add(new Teacher(
+                (int) reader["id"],
+                reader[1] as string, // column index can be used
+                reader.GetString(2), // another syntax option
+                reader["subject"] as string,
+                (int) reader["salary"]));
+        reader.Close();
+        return result;
+    }
 
-	public IEnumerable<Teacher> GetBySubjectSync(string subject)
-	{
-		_cmd.CommandText = $"SELECT * FROM teachers WHERE subject='{subject}'";
-		NpgsqlDataReader reader = _cmd.ExecuteReader();
-		var result = new List<Teacher>();
-		while (reader.Read())
-		{
-			result.Add(new Teacher(
-				id: (int)reader["id"],
-				first_name: reader[1] as string, // column index can be used
-				last_name: reader.GetString(2), // another syntax option
-				subject: reader["subject"] as string,
-				salary: (int)reader["salary"]));
+    internal NpgsqlConnection GetConnection()
+    {
+        return _connection;
+    }
 
-		}
-		reader.Close();
-		return result;
-	}
+    public void BulkInsertRegular(IEnumerable<Teacher> teachers)
+    {
+        // Create a NpgsqlCommand object to execute the query
+        _cmd.Parameters.Clear();
+        _cmd.CommandText =
+            "INSERT INTO teachers (first_name, last_name, subject, salary) VALUES (@firstName, @lastName, @subject, @salary)";
 
-	internal NpgsqlConnection GetConnection()
-	{
-		return _connection;
-	}
+        foreach (var teacher in teachers)
+        {
+            // Add the parameters to the command object
+            _cmd.Parameters.AddWithValue("firstName", teacher.FirstName);
+            _cmd.Parameters.AddWithValue("lastName", teacher.LastName);
+            _cmd.Parameters.AddWithValue("subject", teacher.Subject);
+            _cmd.Parameters.AddWithValue("salary", teacher.Salary);
 
-	public void BulkInsertRegular(IEnumerable<Teacher> teachers)
-	{
-		// Create a NpgsqlCommand object to execute the query
-		_cmd.Parameters.Clear();
-		_cmd.CommandText = "INSERT INTO teachers (first_name, last_name, subject, salary) VALUES (@firstName, @lastName, @subject, @salary)";
+            // Add more parameters and execute the command multiple times to insert multiple items in a batch
+            _cmd.ExecuteNonQuery();
+            _cmd.Parameters.Clear();
+        }
+    }
 
-		foreach (var teacher in teachers)
-		{
-			// Add the parameters to the command object
-			_cmd.Parameters.AddWithValue("firstName", teacher.FirstName);
-			_cmd.Parameters.AddWithValue("lastName", teacher.LastName);
-			_cmd.Parameters.AddWithValue("subject", teacher.Subject);
-			_cmd.Parameters.AddWithValue("salary", teacher.Salary);
+    public void BulkInsertRegular2(IEnumerable<Teacher> teachers)
+    {
+        _cmd.CommandText = "INSERT INTO teachers (first_name, last_name, subject, salary) VALUES " +
+                           string.Join(',',
+                               teachers.Select(t => $"('{t.FirstName}','{t.LastName}','{t.Subject}',{t.Salary})"));
 
-			// Add more parameters and execute the command multiple times to insert multiple items in a batch
-			_cmd.ExecuteNonQuery();
-			_cmd.Parameters.Clear();
-		}
-	}
+        _cmd.ExecuteNonQuery();
+    }
 
-	public void BulkInsertRegular2(IEnumerable<Teacher> teachers)
-	{
-		_cmd.CommandText = "INSERT INTO teachers (first_name, last_name, subject, salary) VALUES " +
-			(String.Join(',', teachers.Select(t => $"('{t.FirstName}','{t.LastName}','{t.Subject}',{t.Salary})")));
+    public void BulkInsertInTransaction(IEnumerable<Teacher> teachers)
+    {
+        using var transaction = _connection.BeginTransaction();
 
-		_cmd.ExecuteNonQuery();
-	}
+        var sql =
+            "INSERT INTO teachers (first_name, last_name, subject, salary) VALUES (@firstName, @lastName, @subject, @salary)";
 
-	public void BulkInsertInTransaction(IEnumerable<Teacher> teachers)
-	{
-		using var transaction = _connection.BeginTransaction();
+        // Create a NpgsqlCommand object to execute the query
+        using var command = new NpgsqlCommand(sql, _connection, transaction);
+        foreach (var teacher in teachers)
+        {
+            // Add the parameters to the command object
+            command.Parameters.AddWithValue("firstName", teacher.FirstName);
+            command.Parameters.AddWithValue("lastName", teacher.LastName);
+            command.Parameters.AddWithValue("subject", teacher.Subject);
+            command.Parameters.AddWithValue("salary", teacher.Salary);
 
-		var sql = "INSERT INTO teachers (first_name, last_name, subject, salary) VALUES (@firstName, @lastName, @subject, @salary)";
+            // Add more parameters and execute the command multiple times to insert multiple items in a batch
+            command.ExecuteNonQuery();
 
-		// Create a NpgsqlCommand object to execute the query
-		using var command = new NpgsqlCommand(sql, _connection, transaction);
-		foreach (var teacher in teachers)
-		{
-			// Add the parameters to the command object
-			command.Parameters.AddWithValue("firstName", teacher.FirstName);
-			command.Parameters.AddWithValue("lastName", teacher.LastName);
-			command.Parameters.AddWithValue("subject", teacher.Subject);
-			command.Parameters.AddWithValue("salary", teacher.Salary);
+            // Clear the parameters for the next batch
+            command.Parameters.Clear();
+        }
 
-			// Add more parameters and execute the command multiple times to insert multiple items in a batch
-			command.ExecuteNonQuery();
+        transaction.Commit();
+    }
 
-			// Clear the parameters for the next batch
-			command.Parameters.Clear();
-		}
-		transaction.Commit();
+    // bulk insert items with Npgsql
+    public async Task BulkInsertBinaryImporter(IEnumerable<Teacher> teachers)
+    {
+        using (var writer =
+               _connection.BeginBinaryImport(
+                   "COPY teachers (first_name, last_name, subject, salary) FROM STDIN (FORMAT BINARY)"))
+        {
+            foreach (var teacher in teachers)
+            {
+                await writer.StartRowAsync().ConfigureAwait(false);
+                await writer.WriteAsync(teacher.FirstName, NpgsqlDbType.Varchar).ConfigureAwait(false);
+                await writer.WriteAsync(teacher.LastName, NpgsqlDbType.Varchar).ConfigureAwait(false);
+                await writer.WriteAsync(teacher.Subject, NpgsqlDbType.Varchar).ConfigureAwait(false);
+                await writer.WriteAsync(teacher.Salary, NpgsqlDbType.Integer).ConfigureAwait(false);
+            }
 
-	}
+            await writer.CompleteAsync().ConfigureAwait(false);
+        }
+    }
 
-	// bulk insert items with Npgsql
-	public async Task BulkInsertBinaryImporter(IEnumerable<Teacher> teachers)
-	{
-		using (var writer = _connection.BeginBinaryImport("COPY teachers (first_name, last_name, subject, salary) FROM STDIN (FORMAT BINARY)"))
-		{
-			foreach (var teacher in teachers)
-			{
-				await writer.StartRowAsync().ConfigureAwait(false);
-				await writer.WriteAsync(teacher.FirstName, NpgsqlTypes.NpgsqlDbType.Varchar).ConfigureAwait(false);
-				await writer.WriteAsync(teacher.LastName, NpgsqlTypes.NpgsqlDbType.Varchar).ConfigureAwait(false);
-				await writer.WriteAsync(teacher.Subject, NpgsqlTypes.NpgsqlDbType.Varchar).ConfigureAwait(false);
-				await writer.WriteAsync(teacher.Salary, NpgsqlTypes.NpgsqlDbType.Integer).ConfigureAwait(false);
-			}
-			await writer.CompleteAsync().ConfigureAwait(false);
-		}
-	}
-
-	public async Task BulkInsertBinaryFormatterAndTransaction(IEnumerable<Teacher> teachers)
-	{
-		using var transaction = _connection.BeginTransaction();
+    public async Task BulkInsertBinaryFormatterAndTransaction(IEnumerable<Teacher> teachers)
+    {
+        using var transaction = _connection.BeginTransaction();
 
 
-		using (var writer = _connection.BeginBinaryImport("COPY teachers (first_name, last_name, subject, salary) FROM STDIN (FORMAT BINARY)"))
-		{
-			foreach (var teacher in teachers)
-			{
-				await writer.StartRowAsync().ConfigureAwait(false);
-				await writer.WriteAsync(teacher.FirstName, NpgsqlTypes.NpgsqlDbType.Varchar).ConfigureAwait(false);
-				await writer.WriteAsync(teacher.LastName, NpgsqlTypes.NpgsqlDbType.Varchar).ConfigureAwait(false);
-				await writer.WriteAsync(teacher.Subject, NpgsqlTypes.NpgsqlDbType.Varchar).ConfigureAwait(false);
-				await writer.WriteAsync(teacher.Salary, NpgsqlTypes.NpgsqlDbType.Integer).ConfigureAwait(false);
-			}
-			await writer.CompleteAsync().ConfigureAwait(false);
-		}
+        using (var writer =
+               _connection.BeginBinaryImport(
+                   "COPY teachers (first_name, last_name, subject, salary) FROM STDIN (FORMAT BINARY)"))
+        {
+            foreach (var teacher in teachers)
+            {
+                await writer.StartRowAsync().ConfigureAwait(false);
+                await writer.WriteAsync(teacher.FirstName, NpgsqlDbType.Varchar).ConfigureAwait(false);
+                await writer.WriteAsync(teacher.LastName, NpgsqlDbType.Varchar).ConfigureAwait(false);
+                await writer.WriteAsync(teacher.Subject, NpgsqlDbType.Varchar).ConfigureAwait(false);
+                await writer.WriteAsync(teacher.Salary, NpgsqlDbType.Integer).ConfigureAwait(false);
+            }
 
-		// Commit the transaction
-		transaction.Commit();
-	}
+            await writer.CompleteAsync().ConfigureAwait(false);
+        }
+
+        // Commit the transaction
+        transaction.Commit();
+    }
 }

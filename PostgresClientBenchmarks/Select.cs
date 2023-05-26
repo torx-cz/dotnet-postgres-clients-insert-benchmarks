@@ -1,16 +1,16 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+
+namespace PostgresClientBenchmarks;
 
 public class Select
 {
-    private PostgresNpgsql _postgresNpgsql;
-	private PostgresDapper _postgresDapper;
-	private PostgresEF _postgresEF;
-	// private Postgres _postgres;
+    private PostgresDapper _postgresDapper;
+    private PostgresEF _postgresEF;
 
-	[GlobalSetup]
+    private PostgresNpgsql _postgresNpgsql;
+    // private Postgres _postgres;
+
+    [GlobalSetup]
     public async Task Setup()
     {
         _postgresNpgsql = new PostgresNpgsql();
@@ -19,15 +19,14 @@ public class Select
         _postgresDapper = new PostgresDapper(_postgresNpgsql.GetConnection());
         _postgresEF = new PostgresEF();
 
-        int items = 10_000;
-        for (int i = 0; i < items; i++)
+        var items = 10_000;
+        for (var i = 0; i < items; i++)
         {
             var item = Teacher.GetRandomTeacher();
             item.Id = i;
             _postgresNpgsql.InsertSync(item);
         }
     }
-
 
 
     [Benchmark]
@@ -40,7 +39,6 @@ public class Select
     [Benchmark]
     public async Task<int> DapperRead()
     {
-        
         return (await _postgresDapper.GetBySubject("S5").ConfigureAwait(false)).Count();
     }
 
@@ -49,7 +47,4 @@ public class Select
     {
         return (await _postgresEF.GetBySubject("S5").ConfigureAwait(false)).Count();
     }
-
-
 }
-
