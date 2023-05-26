@@ -4,7 +4,7 @@ namespace PostgresClientBenchmarks;
 
 public class BulkInsert
 {
-    private const int numTeachers = 1000;
+    private const int numTeachers = 10_000;
     private int _id;
     private PostgresDapper _postgresDapper;
     private PostgresEF _postgresEF;
@@ -22,6 +22,7 @@ public class BulkInsert
         _postgresEF = new PostgresEF();
 
         await _postgresNpgsql.CreateTableAsync();
+        await _postgresNpgsql.CreateIndexOnSubject();
     }
 
     private void GenerateRandomTeachers()
@@ -37,19 +38,33 @@ public class BulkInsert
         _id = 0;
     }
 
+    //[Benchmark]
+    //public void NpgsqlInsertRegular()
+    //{
+    //    _postgresNpgsql.BulkInsertRegular(_teachers);
+    //    _id++;
+    //}
+
     [Benchmark]
-    public void NpgsqlInsertRegular()
+    public async Task EfInsertRangeAsync()
     {
-        _postgresNpgsql.BulkInsertRegular(_teachers);
+        await _postgresEF.InsertRangeAsync(_teachers);
         _id++;
     }
 
     [Benchmark]
-    public void NpgsqlInsertRegular2()
+    public async Task EfBulkInsertAsync()
     {
-        _postgresNpgsql.BulkInsertRegular2(_teachers);
+        await _postgresEF.BulkInsertAsyn(_teachers);
         _id++;
     }
+
+    //[Benchmark]
+    //public void NpgsqlInsertRegular2()
+    //{
+    //    _postgresNpgsql.BulkInsertRegular2(_teachers);
+    //    _id++;
+    //}
 
     [Benchmark]
     public void NpgsqlInsertInTransaction()

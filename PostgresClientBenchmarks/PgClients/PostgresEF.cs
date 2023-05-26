@@ -1,3 +1,4 @@
+using EFCore.BulkExtensions;
 using Microsoft.EntityFrameworkCore;
 using PostgresClientBenchmarks;
 
@@ -8,7 +9,7 @@ public class PostgresEF
     public PostgresEF()
     {
         _db = new SchoolContext();
-        _db.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+        //_db.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
     }
 
     ~PostgresEF()
@@ -16,10 +17,21 @@ public class PostgresEF
         _db.Dispose();
     }
 
-    public async Task Insert(Teacher teacher)
+    public async Task InsertAsync(Teacher teacher)
     {
-        await _db.Teachers.AddAsync(teacher).ConfigureAwait(false);
+        _db.Teachers.Update(teacher);
         await _db.SaveChangesAsync().ConfigureAwait(false);
+    }
+
+    public async Task InsertRangeAsync(IEnumerable<Teacher> teachers)
+    {
+        _db.Teachers.UpdateRange(teachers);
+        await _db.SaveChangesAsync().ConfigureAwait(false);
+    }
+
+    public async Task BulkInsertAsyn(IEnumerable<Teacher> teachers)
+    {
+        await _db.BulkInsertAsync(teachers);
     }
 
     public async Task<Teacher> GetById(int id)

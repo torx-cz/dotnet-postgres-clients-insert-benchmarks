@@ -1,4 +1,5 @@
 using BenchmarkDotNet.Attributes;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace PostgresClientBenchmarks;
 
@@ -17,7 +18,6 @@ public class SingleInsert
     public async Task Setup()
     {
         _item = Teacher.GetRandomTeacher();
-        _item.Id = 0;
         _postgresNpgsql = new PostgresNpgsql();
         await _postgresNpgsql.CreateTableAsync();
 
@@ -41,7 +41,7 @@ public class SingleInsert
     public async Task NpgsqlInsertAsync()
     {
         _id++;
-        _item.Id = _id;
+        //_item.Id = _id;
         await _postgresNpgsql.Insert(_item).ConfigureAwait(false);
     }
 
@@ -49,7 +49,7 @@ public class SingleInsert
     public void NpgsqlInsertSync()
     {
         _id++;
-        _item.Id = _id;
+        //_item.Id = _id;
         _postgresNpgsql.InsertSync(_item);
     }
 
@@ -57,23 +57,23 @@ public class SingleInsert
     public void NpgsqlInsertRawSql()
     {
         _id++;
-        _item.Id = _id;
+        //_item.Id = _id;
         _postgresNpgsql.InsertSyncRawSQL(_item);
     }
 
     [Benchmark]
-    public async Task EFInsertAsync()
+    public async Task EfInsertAsync()
     {
         _id++;
-        _item.Id = _id;
-        await _postgresEF.Insert(_item).ConfigureAwait(false);
+        // _item.Id = _id;
+        await _postgresEF.InsertAsync(_item).ConfigureAwait(false);
     }
 
     [Benchmark]
     public async Task DapperInsert()
     {
         _id++;
-        _item.Id = _id;
+        //_item.Id = _id;
         await _postgresDapper.Insert(_item).ConfigureAwait(false);
     }
 }
